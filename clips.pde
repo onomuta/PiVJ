@@ -1,20 +1,45 @@
-//====Clip1===========================================================
-class Clip1 {
+//// ---- Sample Scenes ----
+//class SceneA implements Scene {
+//float t;
+//void enter() { t = 0; }
+//void render() {
+//noStroke(); fill(255);
+//float r = 120 + 60*sin(t);
+//ellipse(width*0.5, height*0.5, r, r);
+//drawLabel("Scene A : N→/→, P←/←, 1/2/3 jump");
+//}
+//}
+
+
+
+
+//void enter() {}
+//void render() {}
+
+
+//// ---- Scene1 ----
+class Scene1 implements Scene {
   int num = 20;
   float colW = width/num;
   float colH = height/num;
   float[] colY = new float[num];
   float[] colYSpeed = new float[num];
   float[] colColor = new float[num];
-  void setup() {
+  void enter() {
     background(0);
     noStroke();
+    fill(100);
     for(int i = 0 ; i < num ; i++) {
       colYSpeed[i] = random(10)+7;
       colY[i] = random(height);
     };
   };
-  void run() {
+  void render() {
+    rectMode(CORNER);
+    background(0);
+    noStroke();
+
+    colorMode(HSB,100);
     for(int i = 0; i < num; i++){
       if(colY[i] < 0 - colH -400){
         colYSpeed[i] = random(10)+7;
@@ -24,7 +49,8 @@ class Clip1 {
 
       pushMatrix();
         translate(colW * i, colY[i]);
-        fill(20, 60, 100);
+        // fill(20, 60, 100);
+        fill(100);
         scale(0.8);
         translate(20,0);
         beginShape(QUADS);
@@ -38,17 +64,60 @@ class Clip1 {
   };
 }
 
-//====Clip2===========================================================
-class Clip2 {
+//// ---- Scene2 ----
+class Scene2 implements Scene {
+  float angle = 0;
+  void enter() {
+    colorMode(RGB,255);
+    background(0);
+    noStroke();
+  };
+  void render() {
+    stroke(255);
+    fill(255);
+
+    angle += 0.03;
+    pushMatrix();
+      translate(width/2, height/2);
+      rotate(angle);
+      
+      float p1x =noise(t/100,1)*width/2;
+      float p1y =noise(t/100,2)*height/2;
+      float p2x =noise(t/100,3)*width/2;
+      float p2y =noise(t/100,4)*height/2;
+      float p3x =noise(t/100,5)*width/2;
+      float p3y =noise(t/100,6)*height/2;
+
+      for(int i = 0; i < 30; i++){
+        rotate(TWO_PI/30);
+
+        circle(p1x, p1y, 8);
+        circle(p2x, p2y, 8);
+        circle(p3x, p3y, 8);
+        line( p1x, p1y, p2x, p2y);
+        line(p3x, p3y, p2x, p2y);
+        line(p1x, p1y, p3x, p3y);
+      };
+    popMatrix();
+  };
+} 
+
+
+
+
+//// ---- Scene3 ----
+class Scene3 implements Scene {
   int num = 8;
   float colH = 20;
   float[] colY = new float[num];
-  void setup() {
+  void enter() {
     background(0);
     noStroke();
     fill(100);
   };
-  void run() {
+  void render() {
+    colorMode(HSB,100);
+
     fill(100);
     if(colY[0] < 0 - 20){
       colY[0] = height + 20;
@@ -68,18 +137,19 @@ class Clip2 {
   };
 }
 
-//====Clip3===========================================================
-class Clip3 {
+//// ---- Scene4 ----
+class Scene4 implements Scene {
   int num = 8;
   float[] pX = new float[num];
   float[] pY = new float[num];
 
-  void setup() {
+  void enter() {
     background(0);
     fill(100);
     noStroke();
   };
-  void run() {
+  void render() {
+    colorMode(HSB,100);
     background(0);
     fill(100);
 
@@ -93,22 +163,24 @@ class Clip3 {
       vertex(pX[i], pY[i]);
     }
     endShape();
-
-        beginShape();
+    
+    beginShape();
     for(int i = 0; i < num; i ++){
       vertex(width -pX[i], pY[i]);
     }
     endShape();
-
   };
 }
-
-//====Clip4===========================================================
-class Clip4 {
-  void setup() {
-  };
+//// ---- Scene5 ----
+class Scene5 implements Scene {
   int frame = 0;
-  void run() {
+  void enter() {
+    background(0);
+    noStroke();
+    fill(100);
+  };
+  void render() {
+    colorMode(HSB,100);
     background(0);
     noStroke();
     fill(100);
@@ -136,18 +208,21 @@ class Clip4 {
         vertex(-pW/2, pH/2);
       endShape();
     popMatrix();
-
   };
 }
 
-//====Clip5===========================================================
-class Clip5 {
-  void setup() {
-    background(0);
-  };
+//// ---- Scene6 ----
+class Scene6 implements Scene {
+
 
   int num = 10;
-  void run() {
+  void enter() {
+    background(0);
+    noStroke();
+    fill(100);
+  };
+  void render() {
+    colorMode(HSB,100);
     noStroke();
     fill(100);
 
@@ -161,7 +236,7 @@ class Clip5 {
       for(int j =0; j < height/(width / num) +1 ; j++){
         float pW = random(60);
         float pH = random(20);
-        fill((int)random(2) *100);
+        fill(100);
         pushMatrix();
           translate( i * width / num , j * width / num);
 
@@ -169,7 +244,7 @@ class Clip5 {
 
           rotate((int)random(2) *PI/2);
 
-          fill(0, (int)random(2) *  60,100);
+          // fill(0, (int)random(2) *  60,100);
           
 
           beginShape(QUADS);
@@ -182,27 +257,27 @@ class Clip5 {
       }
     }
   };
-};
-
-
-//====Clip6===========================================================
-class Clip6 {
+} 
+//// ---- Scene7 ----
+class Scene7 implements Scene {
   int num = 8;
   float YS[] = new float[num];
   float colW = width/8;
   float colH = 10;
   float colY[] = new float[num];
   float[] colHue = new float[num];
-  
-  void setup() {
+
+  void enter() {
     background(0);
-    fill(0);
+    noStroke();
+    fill(100);
     for(int i = 0; i < num; i++){
       YS[i] = random(16)+8;
     };
   };
 
-  void run() {
+  void render() {
+    colorMode(HSB,100);
     background(0);
     
     for(int i = 0; i < num; i++){
@@ -231,266 +306,141 @@ class Clip6 {
   };
 }
 
-
-//====Clip7===========================================================
-class Clip7 {
-  void setup() {
+//// ---- Scene8 ----
+class Scene8 implements Scene {
+  void enter() {
     background(0);
-    fill(100);
+    noStroke();
   };
-  void run() {
+  void render() {
+    colorMode(HSB,100);
+    rectMode(CENTER);
+    fill(100);
+    push();
     translate(width/2, height/2);
     // translate(0, height/2);
     
-    rotate(radians(frameCount *4));
-    rect(-width,-3,2*width,6);
-    rotate(radians(60));
-    rect(-width,-3,2*width,6);
-    rotate(radians(60));
-    rect(-width,-3,2*width,6);
-    
-  };
-}
-
-
-//====Clip8===========================================================
-class Clip8 {
-  void setup() {
-    background(0);
-    fill(100);
-    noStroke();
-  };
-  
-  int count = 0;
-  
-  void run() {
-    
-    if(count/4 %2 == 0){
-      fill((baseColor[0]+ random(0.15)) % 1,baseColor[1],baseColor[2]);
-    }else{
-      fill(0);
-    }
-    
-    rect(0,0,width, height);
-    count ++;
-  };
-}
-
-//====Clip9===========================================================
-class Clip9 {
-  void setup() {
-    background(0);
-    fill(100);
-    noStroke();
-  };
-  
-  int num = 5;
-  float[] life = new float[num];
-  float[] s = new float[num];
-  float[] r = new float[num];
-  float[] c = new float[num];
-  
-  void run() {
-    translate(width/2, height/2);
-    translate(0, height/2);
-    for(int i = 0; i < num; i++){
-      fill(c[i],1,1);
-      
-      rotate(radians(r[i]));
-      rect(life[i] - width * 0.8,-5,40,10);
-      rotate(-radians(r[i]));
-      life[i] -= s[i];
-      
-      if(life[i] <= 0){
-        life[i] = width * 1.6;
-        //r[i] = random(360);
-        r[i] = (random(80)-40) + ( 180 * round(random(1)));
-        s[i] = random(8) +6;
-        c[i] = random(1);
+    for(int i =0; i < 10; i ++){
+      push();
+      float x = random(-width, width);
+      float y = random(-h/4, h/4);
+      float w = random(width/2);
+      float h = random(height/40);
+      rotate(radians(frameCount *1));
+      for(int j =0; j < 6; j ++){
+        rotate(radians(60));
+        rect(x,y,w,h);
       }
+      pop();
     }
+
+    pop();
   };
+
 }
-//====Clip10===========================================================
-class Clip10 {
-  void setup() {
-    background(0);
-    noStroke();
-  };
-  
+
+//// ---- Scene9 ----
+class Scene9 implements Scene {
   float time = 0;
   float y = 0;
   
-  float cellW = width/8;
+  float cellW = width/40;
   float cellH = height/8;
-  
-  void run() {
-    fill((baseColor[0]+ random(0.15)) % 1,baseColor[1],baseColor[2]);
+  void enter() {
+    colorMode(HSB,100);
+    background(0);
+    noStroke();
+    fill(100);
+  };
+  void render() {
+    rectMode(CORNER);
+    colorMode(HSB,100);
+    fill(100);
     background(0);    
-    for(int i = 0; i< 8; i ++){
-      fill((baseColor[0]+ random(0.15)) % 1,baseColor[1],baseColor[2]);
-      y = (sin(time + i/2.)+1) * (height - cellH) /2;
-      rect(i*cellW, y, cellW, cellH);
+
+    cellH = random(1)*random(1)*height/4;
+    // for(int i = 0; i< 8; i ++){
+    //   y = (sin(time + i/2.)+1) * (height - cellH) /2;
+    //   rect(i*cellW+4, y, cellW-8, cellH);
+    // }    
+
+    float x = 0;
+    int i = 0;
+    while(x < width){
+      y = (sin(-time + i/8.)+1) * (height - cellH) /2;
+      rect(i*cellW+4, y, cellW-8, cellH);
+      x += cellW;
+      i++;
     }    
     time = time + 0.1;
+
   };
+
 }
 
-//====Clip11===========================================================
-class Clip11 {
-  int num = 8;
-  float colH = 20;
+//// ---- Scene10 ----
+class Scene10 implements Scene {
+  int num = 20;
+  float colH = 4;
   float[] colY = new float[num];
-  void setup() {
+  void enter() {
     background(0);
     noStroke();
     fill(100);
+    for(int i = 0 ; i < num ; i++) {
+      colY[i] = random(h);
+    };
   };
-  void run() {
-     if(colY[0] < 0 - 20){
-      colY[0] = height + 20;
+  void render() {
+    rectMode(CORNER);
+    colorMode(HSB,100);
+    fill(100);
+    for(int i = 0; i < num; i ++){
+      rect(0, colY[i], width, colH);
+      if(colY[i] < 0 - 20){
+        colY[i] = height + 20 + i * 50;
+      }
+      colY[i] = colY[i] - (3 + i/16);
     }
-    colY[0] = colY[0] - 10;
-    rect(0, colY[0], width, 20);
+    // colY[0] = colY[0] - 10;
+    // rect(0, colY[0], width, 20);
   };
-}
+} 
 
-//====Clip12===========================================================
-class Clip12 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
+
+//// ---- Scene11 ----
+class Scene11 implements Scene {
+  void enter(){}
+  void render(){
     rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
-}
-
-//====Clip13===========================================================
-class Clip13 {
-  void setup() {
+    colorMode(RGB,255);
     background(0);
+    fill(255);
     noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
+    float i = 0;
+    float gap;
+    while(i < height){
+      gap = random(80);
+      float rectW = random(width);
+      rect(random(width),i,rectW,gap);   
+      i += gap;
+    } 
+  }
 }
 
-//====Clip14===========================================================
-class Clip14 {
-  void setup() {
+//// ---- Scene12 ----
+class Scene12 implements Scene {
+  void enter(){}
+  void render(){
+    rectMode(CENTER);
+    colorMode(RGB,255);
     background(0);
+    fill(255);
     noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
+    float i = 0;
+    while(i < height){
+      rect(random(width),i,random((width/8)),9);   
+      i += 10;
+    }
+  }
 }
-
-//====Clip15===========================================================
-class Clip15 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
-}
-
-//====Clip16===========================================================
-class Clip16 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
-}
-
-//====Clip17===========================================================
-class Clip17 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
-}
-
-//====Clip18===========================================================
-class Clip18 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
-}
-
-//====Clip19===========================================================
-class Clip19 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-  };
-  void run() {
-    rect(random(width),random(height),random(100),random(100));
-  };
-}
-
-//====Clip20===========================================================
-class Clip20 {
-  void setup() {
-    background(0);
-    noStroke();
-    // stroke();
-    fill(100);
-    rectMode(CENTER);
-    // rectMode(CORNER);
-    background(0);
-  };
-  void run() {
-    fill(100);
-    // backgroud
-    // rect(random(width),random(height),random(100),random(100));
-    rect(10,330,10,10);
-  };
-}
-
