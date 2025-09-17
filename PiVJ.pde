@@ -1,28 +1,99 @@
 import java.util.*;
 
 // ------ Config ------
-final String KEYSET = "qwertyuiopasdfghjklzxcvbnm"; // 26キー
-final int BANKS     = 3;      
+final String KEYSET = "123456789"; // 9キー
+final int BANKS = 3;
+final int SCENES_PER_BANK = 9;
 
 // ------ Globals ------
 SceneManager sm;
 HotkeySwitcher hk;
+Scene[] scenes; // グローバル変数として宣言
 
 float t = 0;
-float w,h;
+float w, h;
+
+// 機能フラグ
+boolean Colorize = false;
+boolean disableBackground = false;
+boolean forceBlackColor = false;
+
+color primaryColor = color(230, 110, 20);
 
 void setup() {
-  size(1280,720,P3D);
+  size(1280, 720, P3D);  // 必要に応じて解像度を下げる（例：1024x576）
   // fullScreen(P3D);
   frameRate(60);
   noCursor();
   w = width;
   h = height;
-  // バンク数×キー数ぶんシーンを用意（= 全部事前生成、切替は参照差替えのみ）
-  int total = KEYSET.length() * BANKS;
-  Scene[] scenes = new Scene[total];
-  for (int i = 0; i < total; i++) scenes[i] = new VisualScene(i);
+  
+  // シーンの初期化
+  initializeScenes();
+  
+  sm = new SceneManager(scenes);
+  sm.start(0);
+  hk = new HotkeySwitcher(sm, scenes, KEYSET);
+  
+  // 矢印キー割当
+  hk.registerCoded(LEFT,  () -> sm.prev());
+  hk.registerCoded(RIGHT, () -> sm.next());
+  hk.registerCoded(UP,    () -> hk.prevBank());
+  hk.registerCoded(DOWN,  () -> hk.nextBank());
+}
 
+void draw() {
+  drawBackground();
+  sm.render();
+  
+  // HUD表示を間引き
+  // if (frameCount % 6 == 0) {
+  //   drawHUD();
+  // }
+  t++;
+}
+
+void keyPressed() {
+  if (key != CODED) {
+    handleNumberKeys();
+    handleFunctionKeys();
+  } else {
+    hk.tryInvokeByCode(keyCode);
+  }
+}
+
+void keyReleased() {
+  if (key != CODED) {
+    handleKeyRelease();
+  }
+}
+
+void mouseWheel(MouseEvent event) {
+  float e = event.getCount();
+  if (e < 0) {
+    hk.nextBank();
+  } else if (e > 0) {
+    hk.prevBank();
+  }
+}
+
+// ------ 初期化関数 ------
+void initializeScenes() {
+  int total = KEYSET.length() * BANKS;
+  scenes = new Scene[total]; // グローバル変数に代入
+  
+  // デフォルトでVisualSceneを設定
+  for (int i = 0; i < total; i++) {
+    scenes[i] = new VisualScene(i);
+  }
+  
+  // 実際のシーンを割り当て
+  assignScenes();
+}
+
+void assignScenes() {
+  // バンク1 (0-8): 基本シーン
+  scenes[0] = new Scene0();
   scenes[1] = new Scene1();
   scenes[2] = new Scene2();
   scenes[3] = new Scene3();
@@ -31,56 +102,171 @@ void setup() {
   scenes[6] = new Scene6();
   scenes[7] = new Scene7();
   scenes[8] = new Scene8();
+  
+  // バンク2 (9-17): 中級シーン
   scenes[9] = new Scene9();
   scenes[10] = new Scene10();
   scenes[11] = new Scene11();
   scenes[12] = new Scene12();
-  // scenes[13] = new Scene13();
-  // scenes[14] = new Scene14();
-  // scenes[15] = new Scene15();
-  // scenes[16] = new Scene16();
-  // scenes[17] = new Scene17();
-  // scenes[18] = new Scene18();
-  // scenes[19] = new Scene19();
-  // scenes[20] = new Scene20();
-  // scenes[21] = new Scene21();
-  // scenes[22] = new Scene22();
-  // scenes[23] = new Scene23();
-  // scenes[24] = new Scene24();
-
-
-
-  sm = new SceneManager(scenes);
-  sm.start(0);
-
-  hk = new HotkeySwitcher(sm, scenes, KEYSET);
-
-  // 矢印キー割当：シーン移動＆バンク切替
-  hk.registerCoded(LEFT,  () -> sm.prev());
-  hk.registerCoded(RIGHT, () -> sm.next());
-  hk.registerCoded(UP,    () -> hk.prevBank());
-  hk.registerCoded(DOWN,  () -> hk.nextBank());
+  scenes[13] = new Scene13();
+  scenes[14] = new Scene14();
+  scenes[15] = new Scene15();
+  scenes[16] = new Scene16();
+  scenes[17] = new Scene17();
+  
+  // バンク3 (18-26): 上級シーン
+  scenes[18] = new Scene18();
+  scenes[19] = new Scene19();
+  scenes[20] = new Scene20();
+  scenes[21] = new Scene21();
+  scenes[22] = new Scene22();
+  scenes[23] = new Scene23();
+  // 残りはVisualSceneのまま
 }
 
-void draw() {
-  background(0);
-  sm.render();
-  // drawHUD();
-  t++;
-}
-
-// ラッチなし：押されたイベントで即反応
-void keyPressed() {
-  if (key != CODED) {
-    // 文字キー → 現在バンクの割当シーンに即ジャンプ
-    if (!hk.tryJumpByChar(key)) {
-      // ついでに '[' ']' でもバンク切替（任意）
-      if (key == '[') hk.prevBank();
-      if (key == ']') hk.nextBank();
+// ------ キー処理関数 ------
+void handleNumberKeys() {
+  if (key >= '1' && key <= '9') {
+    int keyIndex = key - '1';
+    int bank = hk.getBank();
+    int sceneIndex = bank * SCENES_PER_BANK + keyIndex;
+    
+    if (sceneIndex < sm.count()) {
+      sm.switchTo(sceneIndex);
     }
-  } else {
-    hk.tryInvokeByCode(keyCode);
   }
+}
+
+void handleFunctionKeys() {
+  switch(key) {
+    case 'q':
+      disableBackground = true;
+      break;
+    case 'w':
+      Colorize = !Colorize;  // eからwに変更
+      break;
+    case 'e':
+      forceBlackColor = true;  // wからeに変更
+      break;
+    case 'l':
+      hk.nextBank();
+      break;
+    case 'k':
+      hk.prevBank();
+      break;
+  }
+}
+
+void handleKeyRelease() {
+  switch(key) {
+    case 'q':
+      disableBackground = false;
+      break;
+    case 'e':  // wからeに変更
+      forceBlackColor = false;
+      break;
+  }
+}
+
+// ------ 描画関数 ------
+void drawBackground() {
+  if (!disableBackground) {
+    background(0);
+  }
+}
+
+void drawHUD() {
+  colorMode(RGB, 255);
+  pushStyle();
+  fill(255);
+  textAlign(LEFT, TOP);
+  textSize(14);
+  
+  int bank = hk.getBank();
+  int totalBk = hk.getBankCount();
+  int currentScene = sm.getIndex();
+  
+  // 基本情報
+  text("Bank " + (bank + 1) + "/" + totalBk + " | Scene " + currentScene, 12, 12);
+  
+  // キー操作説明
+  text("1-9: Scene | Q: BG | W: Color | E: Black | L/K: Bank | Scroll: Bank", 12, 28);
+  
+  // 状態表示
+  drawStatusInfo();
+  
+  popStyle();
+}
+
+void drawStatusInfo() {
+  int y = 48;
+  
+  // Colorize状態
+  y += 20;
+  if (Colorize) {
+    fill(255, 0, 0);
+    text("Colorize: ON (W)", 12, y);
+  } else {
+    fill(255);
+    text("Colorize: OFF (W)", 12, y);
+  }
+  
+  // 背景状態
+  y += 20;
+  if (disableBackground) {
+    fill(0, 255, 0);
+    text("Background: OFF (Q)", 12, y);
+  } else {
+    fill(255);
+    text("Background: ON (Q)", 12, y);
+  }
+  
+  // 黒色描画状態
+  y += 20;
+  if (forceBlackColor) {
+    fill(255, 255, 0);
+    text("Black Color: ON (E)", 12, y);
+  } else {
+    fill(255);
+    text("Black Color: OFF (E)", 12, y);
+  }
+}
+
+// ------ 色設定関数 ------
+void setColorizeFill() {
+  if (forceBlackColor) {
+    colorMode(RGB, 255);
+    fill(0);
+  } else if (Colorize) {
+    colorMode(RGB, 255);
+    fill(primaryColor);
+  } else {
+    colorMode(RGB, 255);
+    fill(255);
+  }
+}
+
+void setColorizeStroke() {
+  if (forceBlackColor) {
+    colorMode(RGB, 255);
+    stroke(0);
+  } else if (Colorize) {
+    colorMode(RGB, 255);
+    stroke(primaryColor);
+  } else {
+    colorMode(RGB, 255);
+    stroke(255);
+  }
+}
+
+void fillBlack() {
+  colorMode(RGB, 255);
+  fill(0);
+}
+
+void strokeBlack() {
+  colorMode(RGB, 255);
+  stroke(0);
 }
 
 // ------ Interfaces / Manager ------
@@ -103,7 +289,7 @@ class SceneManager {
   void next() { switchTo((idx + 1) % scenes.length); }
   void prev() { switchTo((idx - 1 + scenes.length) % scenes.length); }
   void switchTo(int to) {
-    if (to == idx) return;
+    // if (to == idx) return;
     idx = to;
     scenes[idx].enter();
   }
@@ -205,6 +391,7 @@ class VisualScene implements Scene {
   }
 
   public void render() {
+    drawBackground(); // background(0)の代わり
     switch (mode) {
       case 0: renderRings(); break;
       case 1: renderBars();  break;
@@ -214,7 +401,7 @@ class VisualScene implements Scene {
     }
     // ラベル
     pushStyle();
-    fill(255); textSize(14); textAlign(LEFT, BOTTOM);
+    setColorizeFill(); textSize(14); textAlign(LEFT, BOTTOM);
     text("Scene #" + id + "  (mode " + mode + ")", 12, height - 12);
     popStyle();
   }
@@ -230,7 +417,13 @@ class VisualScene implements Scene {
     noFill(); strokeWeight(2);
     for (int i = 0; i < 8; i++) {
       float r = 40 + i*28 + 10*sin(t*1.8 + i*0.6 + id*0.1);
-      stroke(180 + (i*9 + id*7)%75, 150 + (i*5)%100, 255);
+      if (Colorize) {
+        colorMode(RGB, 255);
+        stroke(primaryColor);
+      } else {
+        float gray = 100 + 155*sin(t*0.5 + i*0.3);
+        stroke(gray);
+      }
       circle(0, 0, r*2);
     }
     popMatrix();
@@ -240,20 +433,30 @@ class VisualScene implements Scene {
     noStroke();
     for (int i = 0; i < height; i += 14) {
       float shift = 80*sin(t + i*0.03 + id*0.15);
-      fill(60 + (i + id*13)%195, 200, 240);
+      if (Colorize) {
+        colorMode(RGB, 255);
+        fill(primaryColor);
+      } else {
+        float gray = 50 + 205*sin(t*0.3 + i*0.02);
+        fill(gray);
+      }
       rect(shift, i, width - abs(shift)*2, 10);
     }
   }
 
   void renderParticles() {
-    background(0); // 残像を消したいならコメントアウト
     if (ps == null) return;
-    stroke(0, 220, 255); strokeWeight(2); noFill();
+    if (Colorize) {
+      colorMode(RGB, 255);
+      stroke(primaryColor);
+    } else {
+      float gray = 100 + 155*sin(t*0.8);
+      stroke(gray);
+    }
+    strokeWeight(2); noFill();
     beginShape(POINTS);
     for (Particle p : ps) vertex(p.x, p.y);
     endShape();
-    println(ps.length);
-
   }
 
   void renderGridWave() {
@@ -262,7 +465,13 @@ class VisualScene implements Scene {
     for (int y = step; y < height; y += step) {
       for (int x = step; x < width; x += step) {
         float w = 10 + 8*sin(0.1*x + 0.13*y + t*2 + id*0.07);
-        fill(255, 120, 0);
+        if (Colorize) {
+          colorMode(RGB, 255);
+          fill(primaryColor);
+        } else {
+          float gray = 80 + 175*sin(0.1*x + 0.13*y + t*1.5);
+          fill(gray);
+        }
         rect(x - w/2, y - w/2, w, w);
       }
     }
@@ -270,7 +479,14 @@ class VisualScene implements Scene {
 
   void renderSpokes() {
     pushMatrix(); translate(width/2, height/2);
-    stroke(255); strokeWeight(3);
+    if (Colorize) {
+      colorMode(RGB, 255);
+      stroke(primaryColor);
+    } else {
+      float gray = 120 + 135*sin(t*0.7);
+      stroke(gray);
+    }
+    strokeWeight(3);
     int spokes = 24;
     float R = 240;
     for (int i = 0; i < spokes; i++) {
@@ -293,50 +509,110 @@ class VisualScene implements Scene {
       x += vx; y += vy;
       if (x < 0) x += width; else if (x >= width) x -= width;
       if (y < 0) y += height; else if (y >= height) y -= height;
-      println(ps.length);
-
     }
   }
 }
 
 // ------ HUD ------
-void drawHUD() {
-  colorMode(RGB,255);
-  pushStyle();
-  fill(255); textAlign(LEFT, TOP);
-  textSize(14);
-  int bank    = hk.getBank();
-  int totalBk = hk.getBankCount();
+// void drawHUD() {
+//   colorMode(RGB,255);
+//   pushStyle();
+//   fill(255); textAlign(LEFT, TOP);
+//   textSize(14);
+//   int bank    = hk.getBank();
+//   int totalBk = hk.getBankCount();
+//   int currentScene = sm.getIndex();
 
-  text("Bank " + (bank+1) + " / " + totalBk + "   (UP/DOWN = bank, LEFT/RIGHT = prev/next)",
-       12, 12);
+//   // 簡略化されたHUD表示
+//   text("Bank " + (bank+1) + "/" + totalBk + " | Scene " + currentScene + " | Layer " + (currentLayer+1) + "/" + maxLayers, 12, 12);
 
-  // キー割当のプレビュー（現在バンク）
-  String keys = hk.getKeys();
-  int len = hk.getKeyLen();
-  int y = 32;
-  text("Keys → Scenes (current bank):", 12, y);
-  y += 16;
+//   // キー割当のプレビュー（現在バンク）
+//   String keys = hk.getKeys();
+//   int len = hk.getKeyLen();
+//   int y = 28;
+//   text("Keys: " + keys.substring(0, min(13, len)) + (len > 13 ? "..." : ""), 12, y);
+  
+//   // キー操作の説明
+//   y += 20;
+//   text("1-9: Scene | Q: BG | W: Black | E: Color | Scroll: Layer", 12, y);
+  
+//   // Colorize機能の状態表示
+//   y += 20;
+//   if (Colorize) {
+//     fill(255, 0, 0); // 赤色で表示
+//     text("Colorize: ON (E)", 12, y);
+//   } else {
+//     fill(255); // 白色で表示
+//     text("Colorize: OFF (E)", 12, y);
+//   }
+  
+//   // 背景無効の状態表示
+//   y += 20;
+//   if (disableBackground) {
+//     fill(0, 255, 0); // 緑色で表示
+//     text("Background: OFF (Q)", 12, y);
+//   } else {
+//     fill(255); // 白色で表示
+//     text("Background: ON (Q)", 12, y);
+//   }
+  
+//   // 黒色描画の状態表示
+//   y += 20;
+//   if (forceBlackColor) {
+//     fill(255, 255, 0); // 黄色で表示
+//     text("Black Color: ON (W)", 12, y);
+//   } else {
+//     fill(255); // 白色で表示
+//     text("Black Color: OFF (W)", 12, y);
+//   }
+  
+//   popStyle();
+// }
 
-  StringBuilder line = new StringBuilder();
-  for (int i = 0; i < len; i++) {
-    int idx = bank * len + i;
-    String chunk = "" + keys.charAt(i) + (idx < sm.count() ? "→" + idx : "→-");
-    line.append(chunk).append("   ");
-    // 改行が欲しければここで適宜折り返し
-  }
-  text(line.toString(), 12, y);
-  popStyle();
-}
+// Colorize機能の色設定関数（統一版）
+// void setColorizeFill() {
+//   if (forceBlackColor) {
+//     colorMode(RGB, 255);
+//     fill(0);
+//   } else if (Colorize) {
+//     colorMode(RGB, 255);
+//     fill(primaryColor);
+//   } else {
+//     colorMode(RGB, 255);
+//     fill(255);
+//   }
+// }
 
+// void setColorizeStroke() {
+//   if (forceBlackColor) {
+//     colorMode(RGB, 255);
+//     stroke(0);
+//   } else if (Colorize) {
+//     colorMode(RGB, 255);
+//     stroke(primaryColor);
+//   } else {
+//     colorMode(RGB, 255);
+//     stroke(255);
+//   }
+// }
 
+// 黒を保持するための関数
+// void fillBlack() {
+//   colorMode(RGB, 255);
+//   fill(0); // 黒
+// }
 
+// void strokeBlack() {
+//   colorMode(RGB, 255);
+//   stroke(0); // 黒
+// }
 
-
-
-
-
-
+// 背景描画用の関数
+// void drawBackground() {
+//   if (!disableBackground) {
+//     background(0);
+//   }
+// }
 
 //// ---- Sample Scenes ----
 //class SceneA implements Scene {
