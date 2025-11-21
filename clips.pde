@@ -1505,3 +1505,1296 @@ class Scene23 implements Scene {
     }
   }
 }
+
+//// ---- Scene24 ----
+class Scene24 implements Scene {
+  final int TILE_SIZE = 60;
+  final int COLS = 22; // width / TILE_SIZE
+  final int ROWS = 12; // height / TILE_SIZE
+  float time = 0;
+  int[][] tileTypes; // タイルの種類を保存する配列
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+    
+    // タイルの種類をランダムに決定
+    tileTypes = new int[COLS][ROWS];
+    for (int i = 0; i < COLS; i++) {
+      for (int j = 0; j < ROWS; j++) {
+        tileTypes[i][j] = (int)random(4); // 0-3のランダムな値
+      }
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    for (int i = 0; i < COLS; i++) {
+      for (int j = 0; j < ROWS; j++) {
+        pushMatrix();
+        
+        float x = i * TILE_SIZE + TILE_SIZE / 2;
+        float y = j * TILE_SIZE + TILE_SIZE / 2;
+        translate(x, y);
+        
+        // 保存されたタイルの種類を使用
+        int tileType = tileTypes[i][j];
+        
+        // 各タイルに固定のシード値を使用（安定したアニメーション）
+        float seed1 = i * 0.1 + j * 0.15;
+        float seed2 = i * 0.12 + j * 0.18;
+        float seed3 = i * 0.08 + j * 0.22;
+        float seed4 = i * 0.14 + j * 0.11;
+        
+        float wave1 = sin(time * 2.5 + seed1) * 0.3;
+        float wave2 = cos(time * 2.2 + seed2) * 0.3;
+        float wave3 = sin(time * 4.0 + seed3) * 0.2;
+        float pulse = sin(time * 5.0 + seed4) * 0.2 + 0.8;
+        
+        // タイルの描画
+        switch(tileType) {
+          case 0:
+            drawRotatingSquare(wave1, wave2, pulse);
+            break;
+          case 1:
+            drawPulsingCircle(wave1, wave2, pulse);
+            break;
+          case 2:
+            drawWavingLines(wave1, wave2, wave3, pulse);
+            break;
+          case 3:
+            drawSpinningDiamond(wave1, wave2, pulse);
+            break;
+        }
+        
+        popMatrix();
+      }
+    }
+  }
+  
+  void drawRotatingSquare(float anim1, float anim2, float pulse) {
+    // パルス効果でサイズが大きく変化（グリッド内に収める）
+    float baseSize = TILE_SIZE * 0.4;
+    float size = baseSize + anim2 * 8 + pulse * 10;
+    size = constrain(size, TILE_SIZE * 0.2, TILE_SIZE * 0.8); // グリッド内に制限
+    
+    fillBlack();
+    rectMode(CENTER);
+    rect(0, 0, size, size);
+    
+    // 内側の小さな四角
+    setColorizeStroke();
+    noFill();
+    rect(0, 0, size * 0.2, size * 0.2);
+    
+    // 外側の枠
+    setColorizeStroke();
+    strokeWeight(1);
+    rect(0, 0, size * 1.2, size * 1.2);
+  }
+  
+  void drawPulsingCircle(float anim1, float anim2, float pulse) {
+    // 複数の円が異なる速度で脈動（グリッド内に収める）
+    setColorizeFill();
+    float radius1 = TILE_SIZE * 0.15 + anim1 * 6 + pulse * 8;
+    radius1 = constrain(radius1, TILE_SIZE * 0.1, TILE_SIZE * 0.35);
+    ellipse(0, 0, radius1 * 2, radius1 * 2);
+    
+    // 中間の円
+    setColorizeStroke();
+    noFill();
+    fillBlack();
+    float radius2 = TILE_SIZE * 0.2 + anim2 * 4 + pulse * 6;
+    radius2 = constrain(radius2, TILE_SIZE * 0.15, TILE_SIZE * 0.35);
+    ellipse(0, 0, radius2 * 2, radius2 * 2);
+    
+    // 外側の円（回転なし）
+    float radius3 = TILE_SIZE * 0.25 + anim2 * 3;
+    radius3 = constrain(radius3, TILE_SIZE * 0.2, TILE_SIZE * 0.4);
+    ellipse(0, 0, radius3 * 2, radius3 * 2);
+  }
+  
+  void drawWavingLines(float anim1, float anim2, float anim3, float pulse) {
+    setColorizeStroke();
+    strokeWeight(1 + pulse);
+    
+    // より複雑な波打つ線
+    for (int i = 0; i < 5; i++) {
+      float y = (i - 2) * 6 + anim1 * 8;
+      float wave = sin(time * 6 + i * 1.5 + anim2 * 2) * 4;
+      float lineWidth = TILE_SIZE * 0.6 + pulse * 10;
+      
+      line(-lineWidth/2, y + wave, lineWidth/2, y + wave);
+    }
+    
+    // 中央の点（脈動）
+    setColorizeFill();
+    float dotSize = 2 + anim2 * 2 + pulse * 2;
+    dotSize = constrain(dotSize, 1, 4);
+    ellipse(0, 0, dotSize, dotSize);
+    
+    // 十字（回転なし）
+    setColorizeStroke();
+    strokeWeight(1);
+    line(-6, 0, 6, 0);
+    line(0, -6, 0, 6);
+  }
+  
+  void drawSpinningDiamond(float anim1, float anim2, float pulse) {
+    // サイズが脈動（グリッド内に収める）
+    float baseSize = TILE_SIZE * 0.2;
+    float size = baseSize + anim2 * 5 + pulse * 8;
+    size = constrain(size, TILE_SIZE * 0.15, TILE_SIZE * 0.35);
+    
+    setColorizeFill();
+    beginShape();
+    vertex(0, -size);
+    vertex(size, 0);
+    vertex(0, size);
+    vertex(-size, 0);
+    endShape(CLOSE);
+    
+    // 内側の小さなダイヤモンド
+    setColorizeStroke();
+    noFill();
+    fillBlack();
+    float innerSize = size * 0.5;
+    beginShape();
+    vertex(0, -innerSize);
+    vertex(innerSize, 0);
+    vertex(0, innerSize);
+    vertex(-innerSize, 0);
+    endShape(CLOSE);
+    
+    // 外側の点（回転なし、グリッド内に収める）
+    setColorizeFill();
+    for (int i = 0; i < 4; i++) {
+      float angle = i * PI / 2;
+      float x = cos(angle) * size * 1.2;
+      float y = sin(angle) * size * 1.2;
+      ellipse(x, y, 2 + pulse, 2 + pulse);
+    }
+  }
+}
+
+//// ---- Scene25 ----
+class Scene25 implements Scene {
+  final int NUM_CURVES = 8;
+  float time = 0;
+  float[] curveSeeds = new float[NUM_CURVES];
+  float[] curveSpeeds = new float[NUM_CURVES];
+  float[] curveAmplitudes = new float[NUM_CURVES];
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+    
+    // 各カーブのパラメータを初期化（振幅をさらに2倍に）
+    for (int i = 0; i < NUM_CURVES; i++) {
+      curveSeeds[i] = random(1000);
+      curveSpeeds[i] = random(0.5, 2.0);
+      curveAmplitudes[i] = random(200, 600); // 100-300から200-600に変更
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    pushMatrix();
+    translate(width/2, height/2);
+    
+    // 複数のベジェ曲線でカオスな塊を作成
+    for (int i = 0; i < NUM_CURVES; i++) {
+      drawChaoticBezier(i);
+    }
+    
+    popMatrix();
+  }
+  
+  void drawChaoticBezier(int curveIndex) {
+    float seed = curveSeeds[curveIndex];
+    float speed = curveSpeeds[curveIndex];
+    float amplitude = curveAmplitudes[curveIndex];
+    
+    // ベジェ曲線の制御点を動的に計算
+    float angle1 = time * speed + seed;
+    float angle2 = time * speed * 1.3 + seed + 100;
+    float angle3 = time * speed * 0.8 + seed + 200;
+    float angle4 = time * speed * 1.1 + seed + 300;
+    
+    // 制御点の位置（さらに2倍のスケール）
+    float x1 = cos(angle1) * amplitude * (0.5 + 0.5 * sin(time * 2 + seed));
+    float y1 = sin(angle1) * amplitude * (0.5 + 0.5 * cos(time * 1.5 + seed));
+    float x2 = cos(angle2) * amplitude * (0.3 + 0.7 * sin(time * 1.8 + seed + 50));
+    float y2 = sin(angle2) * amplitude * (0.3 + 0.7 * cos(time * 2.2 + seed + 50));
+    float x3 = cos(angle3) * amplitude * (0.4 + 0.6 * sin(time * 1.2 + seed + 100));
+    float y3 = sin(angle3) * amplitude * (0.4 + 0.6 * cos(time * 1.7 + seed + 100));
+    float x4 = cos(angle4) * amplitude * (0.6 + 0.4 * sin(time * 2.5 + seed + 150));
+    float y4 = sin(angle4) * amplitude * (0.6 + 0.4 * cos(time * 1.9 + seed + 150));
+    
+    // ベジェ曲線の描画（線の太さは元のまま）
+    setColorizeStroke();
+    strokeWeight(2 + sin(time * 3 + seed) * 2); // 元の2-4に戻す
+    noFill();
+    
+    beginShape();
+    vertex(x1, y1);
+    bezierVertex(x2, y2, x3, y3, x4, y4);
+    endShape();
+    
+    // 制御点の描画（円のサイズは2倍のまま）
+    setColorizeFill();
+    ellipse(x1, y1, 8, 8);
+    ellipse(x2, y2, 6, 6);
+    ellipse(x3, y3, 6, 6);
+    ellipse(x4, y4, 8, 8);
+    
+    // 追加の装飾線（線の太さは元のまま）
+    if (curveIndex % 2 == 0) {
+      setColorizeStroke();
+      strokeWeight(1); // 元の1に戻す
+      line(x1, y1, x2, y2);
+      line(x3, y3, x4, y4);
+    }
+  }
+}
+
+//// ---- Scene26 ----
+class Scene26 implements Scene {
+  final int NUM_WAVES = 8;
+  final int POINTS_PER_WAVE = 200;
+  float time = 0;
+  float centerX, centerY;
+  Wave[] waves = new Wave[NUM_WAVES];
+  boolean showIndividualWaves = false;
+  boolean showCombined = true;
+  boolean animate = true;
+  int waveMode = 0; // 0: 正弦波, 1: ノイズ波, 2: 複合波
+  float globalAmplitude = 100;
+  float globalFrequency = 1.0;
+  color[] waveColors = new color[NUM_WAVES];
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+    
+    centerX = width / 2;
+    centerY = height / 2;
+    
+    // 波の初期化
+    initializeWaves();
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    // 波の更新
+    updateWaves();
+    
+    // 波の描画
+    if (showCombined) {
+      drawCombinedWaves();
+    }
+    
+    if (showIndividualWaves) {
+      drawIndividualWaves();
+    }
+    
+  }
+  
+  void initializeWaves() {
+    for (int i = 0; i < NUM_WAVES; i++) {
+      float frequency = 0.5 + i * 0.3;
+      float amplitude = 30 + i * 10;
+      float phase = i * TWO_PI / NUM_WAVES;
+      float speed = 0.5 + i * 0.2;
+      
+      waveColors[i] = color(
+        (i * 45) % 360,
+        200 + sin(i * 0.5) * 55,
+        150 + cos(i * 0.3) * 105
+      );
+      
+      waves[i] = new Wave(frequency, amplitude, phase, speed, waveColors[i]);
+    }
+  }
+  
+  void updateWaves() {
+    for (int i = 0; i < NUM_WAVES; i++) {
+      waves[i].update(time, globalAmplitude, globalFrequency);
+    }
+  }
+  
+  void drawCombinedWaves() {
+    // 複数の波を重ね合わせた複雑なパターン
+    beginShape();
+    
+    for (int i = 0; i < POINTS_PER_WAVE; i++) {
+      float x = map(i, 0, POINTS_PER_WAVE - 1, 0, width);
+      float y = centerY;
+      
+      // 全ての波を重ね合わせ
+      for (int j = 0; j < NUM_WAVES; j++) {
+        y += waves[j].getValueAt(x, i);
+      }
+      
+      // カオス的な変調
+      if (animate) {
+        float chaos = sin(time * 2 + i * 0.1) * 20;
+        y += chaos;
+      }
+    
+      setColorizeFill();
+      vertex(x, y);
+    }
+    
+    endShape();
+  }
+  
+  void drawIndividualWaves() {
+    // 個別の波を描画
+    for (int i = 0; i < NUM_WAVES; i++) {
+      Wave wave = waves[i];
+      
+      setColorizeStroke();
+      stroke(wave.color1);
+      strokeWeight(2);
+      noFill();
+      
+      beginShape();
+      for (int j = 0; j < POINTS_PER_WAVE; j++) {
+        float x = map(j, 0, POINTS_PER_WAVE - 1, 0, width);
+        float y = centerY + wave.getValueAt(x, j);
+        vertex(x, y);
+      }
+      endShape();
+    }
+  }
+  
+
+  void keyPressed() {
+    if (key >= '1' && key <= '3') {
+      waveMode = key - '1';
+      initializeWaves();
+    } else if (key == 'i' || key == 'I') {
+      showIndividualWaves = !showIndividualWaves;
+    } else if (key == 'c' || key == 'C') {
+      showCombined = !showCombined;
+    } else if (key == '+' || key == '=') {
+      globalAmplitude = min(globalAmplitude + 10, 200);
+    } else if (key == '-') {
+      globalAmplitude = max(globalAmplitude - 10, 20);
+    } else if (key == 'a' || key == 'A') {
+      animate = !animate;
+    }
+  }
+  
+  // 波クラス
+  class Wave {
+    float frequency;
+    float amplitude;
+    float phase;
+    float speed;
+    color color1;
+    float[] values = new float[POINTS_PER_WAVE];
+    
+    Wave(float freq, float amp, float ph, float spd, color c) {
+      frequency = freq;
+      amplitude = amp;
+      phase = ph;
+      speed = spd;
+      color1 = c;
+    }
+    
+    void update(float time, float globalAmp, float globalFreq) {
+      for (int i = 0; i < POINTS_PER_WAVE; i++) {
+        float x = map(i, 0, POINTS_PER_WAVE - 1, 0, width);
+        values[i] = getValueAt(x, i, time, globalAmp, globalFreq);
+      }
+    }
+    
+    float getValueAt(float x, int index) {
+      return getValueAt(x, index, time, globalAmplitude, globalFrequency);
+    }
+    
+    float getValueAt(float x, int index, float time, float globalAmp, float globalFreq) {
+      float value = 0;
+      
+      switch(waveMode) {
+        case 0: // 正弦波
+          value = sin(x * frequency * 0.01 + phase + time * speed) * amplitude;
+          break;
+          
+        case 1: // ノイズ波
+          value = (noise(x * 0.01 + phase, time * speed) - 0.5) * amplitude * 2;
+          break;
+          
+        case 2: // 複合波
+          float sine = sin(x * frequency * 0.01 + phase + time * speed) * amplitude;
+          float noise = (noise(x * 0.01 + phase, time * speed) - 0.5) * amplitude * 0.5;
+          float saw = ((x * frequency * 0.01 + phase + time * speed) % TWO_PI) / TWO_PI * amplitude - amplitude/2;
+          value = sine + noise + saw * 0.3;
+          break;
+      }
+      
+      // グローバル変調
+      value *= globalAmp / 100.0;
+      value *= globalFreq;
+      
+      // カオス的な変調
+      if (animate) {
+        float chaos = sin(time * 3 + index * 0.2) * 10;
+        value += chaos;
+      }
+      
+      return value;
+    }
+  }
+}
+
+//// ---- Scene27 ----
+class Scene27 implements Scene {
+  final int NUM_TRIANGLES = 240;
+  Triangle[] triangles = new Triangle[NUM_TRIANGLES];
+  float time = 0;
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+
+    // 三角形の初期化
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+      triangles[i] = new Triangle();
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    // 三角形の更新と描画
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+      triangles[i].update();
+      triangles[i].draw();
+    }
+  }
+  
+  // 三角形クラス
+  class Triangle {
+    // 各頂点を個別に管理
+    float v1x, v1y;
+    float v2x, v2y;
+    float v3x, v3y;
+    
+    // 三角形全体の速度（全頂点共通）
+    float speed;
+    
+    float alpha;
+    boolean isInitial; // 初回生成かどうか
+    
+    // 点滅効果
+    float flickerTimer;
+    float flickerInterval;
+    boolean isVisible;
+    
+    Triangle() {
+      isInitial = true;
+      reset();
+    }
+    
+    void reset() {
+      // 三角形の中心位置
+      float centerX = random(width);
+      float centerY;
+      
+      // 初回生成時はランダムな位置、リセット時は画面下部の範囲外
+      if (isInitial) {
+        centerY = random(height);
+        isInitial = false;
+      } else {
+        centerY = height + random(50, 150);
+      }
+      
+      float size = random(20, 80);
+      
+      // 3つの頂点をランダムな形で配置（中心からの距離は一定範囲内）
+      float angle1 = random(TWO_PI);
+      float angle2 = random(TWO_PI);
+      float angle3 = random(TWO_PI);
+      
+      float radius1 = random(size * 0.3, size * 0.7);
+      float radius2 = random(size * 0.3, size * 0.7);
+      float radius3 = random(size * 0.3, size * 0.7);
+      
+      v1x = centerX + cos(angle1) * radius1;
+      v1y = centerY + sin(angle1) * radius1;
+      v2x = centerX + cos(angle2) * radius2;
+      v2y = centerY + sin(angle2) * radius2;
+      v3x = centerX + cos(angle3) * radius3;
+      v3y = centerY + sin(angle3) * radius3;
+      
+      // 全頂点共通の速度
+      speed = random(1, 4);
+      
+      alpha = 255;
+      
+      // 点滅効果の初期化
+      flickerInterval = random(2, 40); // ランダムな点滅間隔
+      flickerTimer = 0;
+      isVisible = random(1) < 0.5;
+    }
+    
+    void update() {
+      // 各頂点が同じ速度で上に移動
+      v1y -= speed;
+      v2y -= speed;
+      v3y -= speed;
+      
+      // 点滅効果の更新
+      flickerTimer++;
+      if (flickerTimer >= flickerInterval) {
+        isVisible = !isVisible;
+        flickerTimer = 0;
+        if (!isVisible) {
+          // 次の点滅間隔をランダムに設定
+          flickerInterval = random(60, 380);
+        }
+        else {
+          flickerInterval = random(20, 80);
+        }
+      }
+      
+      // 3つの頂点全てが画面外に出たらリセット
+      if (v1y < -100 && v2y < -100 && v3y < -100) {
+        reset();
+      }
+      
+      // フェードアウト（画面上部で薄くなる）
+      float avgY = (v1y + v2y + v3y) / 3;
+      if (avgY < height * 0.3) {
+        alpha = map(avgY, 0, height * 0.3, 0, 255);
+      } else {
+        alpha = 255;
+      }
+    }
+    
+    void draw() {
+      // 点滅効果：見えない時は描画しない
+      if (!isVisible) {
+        return;
+      }
+      
+      // 三角形の描画
+      noFill();
+      setColorizeStroke();
+      strokeWeight(2);
+      
+      beginShape();
+      vertex(v1x, v1y);
+      vertex(v2x, v2y);
+      vertex(v3x, v3y);
+      endShape(CLOSE);
+    }
+  }
+}
+
+//// ---- Scene28 ----
+class Scene28 implements Scene {
+  final int NUM_TRIANGLES = 240;
+  Triangle[] triangles = new Triangle[NUM_TRIANGLES];
+  float time = 0;
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+ 
+    // 三角形の初期化
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+      triangles[i] = new Triangle();
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    // 三角形の更新と描画
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+      triangles[i].update();
+      triangles[i].draw();
+    }
+  }
+  
+  // 三角形クラス
+  class Triangle {
+    // 各頂点を個別に管理
+    float v1x, v1y;
+    float v2x, v2y;
+    float v3x, v3y;
+    
+    // 三角形全体の速度（全頂点共通）
+    float speed;
+    
+    float alpha;
+    boolean isInitial; // 初回生成かどうか
+    
+    // 点滅効果
+    float flickerTimer;
+    float flickerInterval;
+    boolean isVisible;
+    
+    Triangle() {
+      isInitial = true;
+      reset();
+    }
+    
+    void reset() {
+      // 三角形の中心位置
+      float centerX = random(width);
+      float centerY;
+      
+      // 初回生成時はランダムな位置、リセット時は画面下部の範囲外
+      if (isInitial) {
+        centerY = random(height);
+        isInitial = false;
+      } else {
+        centerY = height + random(50, 150);
+      }
+      
+      float size = random(20, 80);
+      
+      // 3つの頂点をランダムな形で配置（中心からの距離は一定範囲内）
+      float angle1 = random(TWO_PI);
+      float angle2 = random(TWO_PI);
+      float angle3 = random(TWO_PI);
+      
+      float radius1 = random(size * 0.3, size * 0.7);
+      float radius2 = random(size * 0.3, size * 0.7);
+      float radius3 = random(size * 0.3, size * 0.7);
+      
+      v1x = centerX + cos(angle1) * radius1;
+      v1y = centerY + sin(angle1) * radius1;
+      v2x = centerX + cos(angle2) * radius2;
+      v2y = centerY + sin(angle2) * radius2;
+      v3x = centerX + cos(angle3) * radius3;
+      v3y = centerY + sin(angle3) * radius3;
+      
+      // 全頂点共通の速度
+      speed = random(1, 4);
+      
+      alpha = 255;
+      
+      // 点滅効果の初期化
+      flickerInterval = random(2, 40); // ランダムな点滅間隔
+      flickerTimer = 0;
+      isVisible = random(1) < 0.8;
+    }
+    
+    void update() {
+      // 各頂点が同じ速度で上に移動
+      v1y -= speed;
+      v2y -= speed;
+      v3y -= speed;
+      
+      // 点滅効果の更新
+      flickerTimer++;
+      if (flickerTimer >= flickerInterval) {
+        isVisible = !isVisible;
+        flickerTimer = 0;
+        if (!isVisible) {
+          // 次の点滅間隔をランダムに設定
+          flickerInterval = random(4, 8);
+        }
+        else {
+          flickerInterval = random(20, 200);
+        }
+      }
+      
+      // 3つの頂点全てが画面外に出たらリセット
+      if (v1y < -100 && v2y < -100 && v3y < -100) {
+        reset();
+      }
+      
+      // フェードアウト（画面上部で薄くなる）
+      float avgY = (v1y + v2y + v3y) / 3;
+      if (avgY < height * 0.3) {
+        alpha = map(avgY, 0, height * 0.3, 0, 255);
+      } else {
+        alpha = 255;
+      }
+    }
+    
+    void draw() {
+      // 点滅効果：見えない時は描画しない
+      if (!isVisible) {
+        return;
+      }
+      
+      // 三角形の描画
+      noFill();
+      setColorizeStroke();
+      strokeWeight(2);
+      
+      beginShape();
+      vertex(v1x, v1y);
+      vertex(v2x, v2y);
+      vertex(v3x, v3y);
+      endShape(CLOSE);
+    }
+  }
+}
+
+//// ---- Scene29 ----
+class Scene29 implements Scene {
+  final int NUM_POINTS = 240;
+  final int MAX_CONNECTIONS = 60;
+  Point[] points = new Point[NUM_POINTS];
+  Connection[] connections = new Connection[MAX_CONNECTIONS];
+  int connectionIndex = 0;
+  float time = 0;
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+ 
+    // 点の初期化
+    for (int i = 0; i < NUM_POINTS; i++) {
+      points[i] = new Point();
+    }
+    
+    // 接続の初期化
+    for (int i = 0; i < MAX_CONNECTIONS; i++) {
+      connections[i] = new Connection();
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.01;
+    
+    // 点の更新
+    for (int i = 0; i < NUM_POINTS; i++) {
+      points[i].update();
+    }
+    
+    // 新しいランダムな接続を作成
+    createRandomConnections();
+    
+    // 接続の更新と描画
+    for (int i = 0; i < MAX_CONNECTIONS; i++) {
+      connections[i].update();
+      connections[i].draw(points);
+    }
+    
+    // 点の描画
+    for (int i = 0; i < NUM_POINTS; i++) {
+      points[i].draw();
+    }
+  }
+  
+  void createRandomConnections() {
+    // 毎フレーム、いくつかのランダムな点のペアを接続
+    int numNewConnections = 2; // 20から5に削減
+    
+    for (int i = 0; i < numNewConnections; i++) {
+      int index1 = int(random(NUM_POINTS));
+      int index2 = int(random(NUM_POINTS));
+      
+      if (index1 != index2) {
+        Point p1 = points[index1];
+        Point p2 = points[index2];
+        
+        // 距離が近い場合のみ接続を作成
+        float distance = dist(p1.x, p1.y, p2.x, p2.y);
+        if (distance < 200) {
+          connections[connectionIndex].create(index1, index2, 4);
+          connectionIndex = (connectionIndex + 1) % MAX_CONNECTIONS;
+        }
+      }
+    }
+  }
+  
+  // 接続クラス
+  class Connection {
+    int point1Index, point2Index;
+    int lifetime;
+    boolean active;
+    
+    Connection() {
+      active = false;
+    }
+    
+    void create(int p1, int p2, int life) {
+      point1Index = p1;
+      point2Index = p2;
+      lifetime = life;
+      active = true;
+    }
+    
+    void update() {
+      if (active) {
+        lifetime--;
+        if (lifetime <= 0) {
+          active = false;
+        }
+      }
+    }
+    
+    void draw(Point[] points) {
+      if (!active) return;
+      
+      Point p1 = points[point1Index];
+      Point p2 = points[point2Index];
+      
+      float distance = dist(p1.x, p1.y, p2.x, p2.y);
+      if (distance < 200) {
+        setColorizeStroke();
+        strokeWeight(1.5);
+        line(p1.x, p1.y, p2.x, p2.y);
+      }
+    }
+  }
+  
+  // 点クラス
+  class Point {
+    float x, y;
+    float speed;
+    float size;
+    float alpha;
+    boolean isInitial;
+    
+    Point() {
+      isInitial = true;
+      reset();
+    }
+    
+    void reset() {
+      x = random(width);
+      
+      // 初回生成時はランダムな位置、リセット時は画面下部の範囲外
+      if (isInitial) {
+        y = random(height);
+        isInitial = false;
+      } else {
+        y = height + random(5, 10);
+      }
+      
+      speed = random(1, 2);
+      size = random(2, 4);
+      alpha = 255;
+    }
+    
+    void update() {
+      // 上に移動
+      y -= speed;
+      
+      // 画面外に出たらリセット
+      if (y < -100) {
+        reset();
+      }
+      
+
+    }
+    
+    void draw() {
+      setColorizeFill();
+    strokeWeight(0);
+      ellipse(x, y, size, size);
+    }
+  }
+}
+
+//// ---- Scene30 ----
+class Scene30 implements Scene {
+  final int NUM_GLITCH_BLOCKS = 30;
+  GlitchBlock[] blocks = new GlitchBlock[NUM_GLITCH_BLOCKS];
+  float time = 0;
+  int glitchTimer = 0;
+  int glitchInterval = 5;
+  boolean isGlitching = false;
+  
+  // RGB分離エフェクト
+  float rgbShiftX = 0;
+  float rgbShiftY = 0;
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+    
+    // グリッチブロックの初期化
+    for (int i = 0; i < NUM_GLITCH_BLOCKS; i++) {
+      blocks[i] = new GlitchBlock();
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    // グリッチタイマー
+    glitchTimer++;
+    if (glitchTimer >= glitchInterval) {
+      glitchTimer = 0;
+      isGlitching = random(1) < 0.3; // 30%の確率でグリッチ
+      
+      // RGB分離の強度をランダムに
+      if (isGlitching) {
+        rgbShiftX = random(-10, 10);
+        rgbShiftY = random(-5, 5);
+      } else {
+        rgbShiftX = 0;
+        rgbShiftY = 0;
+      }
+    }
+    
+    // グリッチブロックの更新と描画
+    for (int i = 0; i < NUM_GLITCH_BLOCKS; i++) {
+      blocks[i].update();
+      blocks[i].draw();
+    }
+    
+    // デジタルノイズ
+    if (isGlitching) {
+      drawDigitalNoise();
+    }
+    
+    // RGB分離エフェクト
+    if (abs(rgbShiftX) > 0 || abs(rgbShiftY) > 0) {
+      drawRGBShift();
+    }
+  }
+  
+  void drawDigitalNoise() {
+    // ランダムなピクセルノイズ
+    setColorizeFill();
+    
+    for (int i = 0; i < 100; i++) {
+      float x = random(width);
+      float y = random(height);
+      float size = random(1, 5);
+      
+      fill(255, random(100, 255));
+      rect(x, y, size, size);
+    }
+  }
+  
+  void drawRGBShift() {
+    // RGB分離エフェクト（矩形で近似）
+    setColorizeFill();
+    
+    for (int i = 0; i < 5; i++) {
+      float x = random(width);
+      float y = random(height);
+      float w = random(50, 200);
+      float h = random(2, 10);
+      
+      // R チャンネル
+      fill(255, 0, 0, 100);
+      rect(x + rgbShiftX, y, w, h);
+      
+      // G チャンネル
+      fill(0, 255, 0, 100);
+      rect(x, y, w, h);
+      
+      // B チャンネル
+      fill(0, 0, 255, 100);
+      rect(x - rgbShiftX, y + rgbShiftY, w, h);
+    }
+  }
+  
+  // グリッチブロッククラス
+  class GlitchBlock {
+    float x, y, w, h;
+    float vx, vy;
+    float lifetime;
+    float maxLifetime;
+    boolean active;
+    int glitchType; // 0: 横ずれ, 1: 縦ずれ, 2: ブロックノイズ
+    
+    GlitchBlock() {
+      reset();
+    }
+    
+    void reset() {
+      x = random(width);
+      y = random(height);
+      w = random(50, 300);
+      h = random(5, 30);
+      vx = random(-5, 5);
+      vy = random(-2, 2);
+      lifetime = 0;
+      maxLifetime = random(10, 30);
+      active = random(1) < 0.5;
+      glitchType = int(random(3));
+    }
+    
+    void update() {
+      if (!active) {
+        // ランダムに再アクティブ化
+        if (random(1) < 0.02) {
+          reset();
+          active = true;
+        }
+        return;
+      }
+      
+      lifetime++;
+      
+      // 動き
+      x += vx;
+      y += vy;
+      
+      // 画面端で跳ね返る
+      if (x < 0 || x + w > width) {
+        vx *= -1;
+        x = constrain(x, 0, width - w);
+      }
+      if (y < 0 || y + h > height) {
+        vy *= -1;
+        y = constrain(y, 0, height - h);
+      }
+      
+      // 寿命が尽きたら非アクティブ化
+      if (lifetime > maxLifetime) {
+        active = false;
+      }
+      
+      // ランダムにグリッチタイプを変更
+      if (random(1) < 0.05) {
+        glitchType = int(random(3));
+      }
+    }
+    
+    void draw() {
+      if (!active) return;
+      
+      pushMatrix();
+      
+      switch(glitchType) {
+        case 0: // 横ずれ
+          drawHorizontalGlitch();
+          break;
+        case 1: // 縦ずれ
+          drawVerticalGlitch();
+          break;
+        case 2: // ブロックノイズ
+          drawBlockNoise();
+          break;
+      }
+      
+      popMatrix();
+    }
+    
+    void drawHorizontalGlitch() {
+      setColorizeFill();
+      
+      // 複数の水平バーを描画
+      for (int i = 0; i < 3; i++) {
+        float offsetX = random(-20, 20);
+        float barY = y + i * h / 3;
+        rect(x + offsetX, barY, w, h / 3);
+      }
+      
+      // 外枠
+      setColorizeStroke();
+      noFill();
+      strokeWeight(1);
+      rect(x, y, w, h);
+    }
+    
+    void drawVerticalGlitch() {
+      setColorizeFill();
+      
+      // 複数の垂直バーを描画
+      int numBars = int(w / 20);
+      for (int i = 0; i < numBars; i++) {
+        float offsetY = random(-10, 10);
+        float barX = x + i * 20;
+        rect(barX, y + offsetY, 20, h);
+      }
+      
+      // 外枠
+      setColorizeStroke();
+      noFill();
+      strokeWeight(1);
+      rect(x, y, w, h);
+    }
+    
+    void drawBlockNoise() {
+      setColorizeFill();
+      
+      // ランダムなブロックノイズ
+      int numBlocks = int(w * h / 100);
+      for (int i = 0; i < numBlocks; i++) {
+        float blockX = x + random(w);
+        float blockY = y + random(h);
+        float blockSize = random(2, 8);
+        
+        if (random(1) < 0.5) {
+          fill(255);
+        } else {
+          fill(0);
+        }
+        
+        rect(blockX, blockY, blockSize, blockSize);
+      }
+      
+      // 外枠
+      setColorizeStroke();
+      noFill();
+      strokeWeight(1);
+      rect(x, y, w, h);
+    }
+  }
+}
+
+//// ---- Scene31 ----
+class Scene31 implements Scene {
+  final int NUM_TRIANGLES = 40;
+  Triangle[] triangles = new Triangle[NUM_TRIANGLES];
+  float time = 0;
+  
+  void enter() {
+    drawBackground();
+    noStroke();
+    setColorizeFill();
+
+    // 三角形の初期化
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+      triangles[i] = new Triangle();
+    }
+  }
+
+  void render() {
+    drawBackground();
+    noStroke();
+    
+    time += 0.02;
+    
+    // 三角形の更新と描画
+    for (int i = 0; i < NUM_TRIANGLES; i++) {
+      triangles[i].update();
+      triangles[i].draw();
+    }
+  }
+  
+  // 三角形クラス
+  class Triangle {
+    float x, y;
+    float size;
+    float speed;
+    float wobbleX, wobbleY;
+    float wobbleSpeed;
+    float rotation;
+    float rotationSpeed;
+    float alpha;
+    
+    Triangle() {
+      reset();
+    }
+    
+    void reset() {
+      x = random(width);
+      y = random(height);
+      size = random(20, 80);
+      speed = random(1, 4);
+      wobbleX = random(TWO_PI);
+      wobbleY = random(TWO_PI);
+      wobbleSpeed = random(0.02, 0.08);
+      rotation = random(TWO_PI);
+      rotationSpeed = random(-0.03, 0.03);
+      alpha = 255;
+    }
+    
+    void update() {
+      // 上に移動
+      y -= speed;
+      
+      // 左右に揺れる
+      wobbleX += wobbleSpeed;
+      wobbleY += wobbleSpeed;
+      
+      // 回転
+      rotation += rotationSpeed;
+      
+      // 画面外に出たらリセット
+      if (y < -100) {
+        reset();
+        y = height+40;
+      }
+      
+      // フェードアウト（画面上部で薄くなる）
+      if (y < height * 0.3) {
+        alpha = map(y, 0, height * 0.3, 0, 255);
+      } else {
+        alpha = 255;
+      }
+    }
+    
+    void draw() {
+      pushMatrix();
+      
+      // 位置に移動
+      float wobbleOffsetX = sin(wobbleX) * 20;
+      float wobbleOffsetY = cos(wobbleY) * 10;
+      translate(x + wobbleOffsetX, y + wobbleOffsetY);
+      
+      // 回転
+      rotate(rotation);
+      
+      // 三角形の描画
+      noFill();
+      setColorizeStroke();
+      strokeWeight(2);
+      
+      beginShape();
+      // 各頂点に微妙な動きを追加
+      float v1x = 0 + sin(time * 2 + rotation) * 3;
+      float v1y = -size/2 + cos(time * 1.5 + rotation) * 3;
+      float v2x = -size/2 + sin(time * 1.8 + rotation + 1) * 3;
+      float v2y = size/2 + cos(time * 2.2 + rotation + 1) * 3;
+      float v3x = size/2 + sin(time * 2.5 + rotation + 2) * 3;
+      float v3y = size/2 + cos(time * 1.7 + rotation + 2) * 3;
+      
+      vertex(v1x, v1y);
+      vertex(v2x, v2y);
+      vertex(v3x, v3y);
+      endShape(CLOSE);
+      
+      // // 内側の小さな三角形（逆向き）
+      // setColorizeFill();
+      // beginShape();
+      // vertex(v1x * 0.4, v1y * 0.4);
+      // vertex(v2x * 0.4, v2y * 0.4);
+      // vertex(v3x * 0.4, v3y * 0.4);
+      // endShape(CLOSE);
+      
+      popMatrix();
+    }
+  }
+}
