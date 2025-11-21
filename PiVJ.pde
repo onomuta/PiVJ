@@ -2,7 +2,7 @@ import java.util.*;
 
 // ------ Config ------
 final String KEYSET = "123456789"; // 9キー
-final int BANKS = 3;
+final int BANKS = 4;
 final int SCENES_PER_BANK = 9;
 
 // ------ Globals ------
@@ -18,7 +18,8 @@ boolean Colorize = false;
 boolean disableBackground = false;
 boolean forceBlackColor = false;
 
-color primaryColor = color(230, 110, 20);
+// color primaryColor = color(230, 110, 20);
+color primaryColor = color(20, 255, 100);
 
 void setup() {
   size(1280, 720, P3D);  // 必要に応じて解像度を下げる（例：1024x576）
@@ -121,6 +122,18 @@ void assignScenes() {
   scenes[21] = new Scene21();
   scenes[22] = new Scene22();
   scenes[23] = new Scene23();
+  scenes[24] = new Scene24();
+  scenes[25] = new Scene25();
+  scenes[26] = new Scene26();
+
+  // バンク4 (27-35): 新規シーン
+  scenes[27] = new Scene27();
+  scenes[28] = new Scene28();
+  scenes[29] = new Scene29();
+  scenes[30] = new Scene30();
+  scenes[31] = new Scene31();
+  
+
   // 残りはVisualSceneのまま
 }
 
